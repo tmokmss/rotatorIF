@@ -35,15 +35,16 @@ void CtrlSystem::set_target(int target) {
 }
 
 int CtrlSystem::start_control() {
-  static bool reached = false;
+  static bool reached = true;
   int estimation = determine();
   int distance = target_deg - estimation ;
 
   if (reached && abs(distance) < allowed_error){
+    stop_rotation();
     return estimation;
   }
   else {
-    reached = false;
+    //reached = false;
   }
 
   // 目標近傍では回転速度を下げる
@@ -54,27 +55,13 @@ int CtrlSystem::start_control() {
     set_slow_rotation(false);
   }
 
-  Serial.print("control switch: ");
-  // deadbandのあるon-off制御
-  if (is_rotating_CW) {
-    if (distance < -allowed_error) {
-      reached = true;
-      stop_rotation();
-    }
-    else {
-      start_CW_rotation();
-    }
+  if (distance > 0) {
+    start_CW_rotation();
   }
   else {
-    if (distance > allowed_error) {
-      reached = true;
-      stop_rotation();
-    }
-    else {
-      start_CCW_rotation();
-    }
+    start_CCW_rotation();
   }
-
+  
   return estimation;
 }
 
