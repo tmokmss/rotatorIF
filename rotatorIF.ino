@@ -43,8 +43,8 @@ int CCW_EL_pin = 9;
 // LOWなら回転速度低下
 int slow_EL_pin = 10;
 
-int target_AZ = 0;
-int target_EL = 0;
+int target_AZ = 0;  // デフォルトの角度
+int target_EL = 0;  // デフォルトの角度
 int allowed_error_AZ = 5;
 int allowed_error_EL = 5;
 
@@ -54,7 +54,7 @@ CtrlSystem EL_control(CW_EL_pin, CCW_EL_pin, slow_EL_pin, meter_EL_pin);
 void setup() {
   init_com();
   AZ_control.set_adc_values(0.1, 5, -180, 180);
-  EL_control.set_adc_values(0.4, 2.8, 0, 90);
+  EL_control.set_adc_values(0.5, 4.53, -10, 100);
   AZ_control.set_allowed_error(allowed_error_AZ);
   EL_control.set_allowed_error(allowed_error_EL);
   AZ_control.myName = "AZ_control";
@@ -68,9 +68,7 @@ void loop() {
     // 制御周期分時間経過したら制御
     previous_time  = timenow;
     int AZnow = AZ_control.start_control();
-    //delay(500);
     int ELnow = EL_control.start_control();
-    //Serial.println("control");
     send_data(AZnow, ELnow);
   }
 

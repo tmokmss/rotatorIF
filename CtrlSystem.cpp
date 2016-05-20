@@ -89,15 +89,11 @@ int CtrlSystem::get_estimation() {
 void CtrlSystem::start_CW_rotation() {
   digitalWrite(ccw_pin, LOW);
   digitalWrite(cw_pin, HIGH);
-  Serial.print(myName);
-  Serial.println(" Start CW");
 }
 
 void CtrlSystem::start_CCW_rotation() {
   digitalWrite(cw_pin, LOW);
   digitalWrite(ccw_pin, HIGH);
-  Serial.print(myName);
-  Serial.println(" Start CCW");
 }
 
 void CtrlSystem::set_slow_rotation(bool isOn) {
@@ -112,13 +108,12 @@ void CtrlSystem::set_slow_rotation(bool isOn) {
 void CtrlSystem::stop_rotation() {
   digitalWrite(cw_pin, LOW);
   digitalWrite(ccw_pin, LOW);
-  Serial.print(myName);
-  Serial.println(" stopped");
 }
 
 int CtrlSystem::determine() {
   int anaraw = analogRead(meter_pin);
   float anav = anaraw * 5.0 / 1024;
+  //Serial.print(anav);
   int estimation_deg = (anav - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
   return estimation_deg;
 }
