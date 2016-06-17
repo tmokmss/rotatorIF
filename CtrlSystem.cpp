@@ -22,28 +22,25 @@ CtrlSystem::CtrlSystem(int cwPin, int ccwPin, int slowPin, int meterPin) {
   myName = "CtrlSystem";
 }
 
-void CtrlSystem::set_target(int target) {
+int CtrlSystem::set_target(int target) {
   if (target >= toLow && target <= toHigh) {
+    // 範囲外は無視
     target_deg = target;
   }
-  else {
-    target_deg = 0; //(toLow + toHigh) / 2;
-  }
-  // これからの回転方向を記憶
-  int est = determine();
-  is_rotating_CW = est > target_deg;
+  return target_deg;
 }
 
 int CtrlSystem::start_control() {
-  static bool reached = false;
+  static bool reached = true;
   int estimation = determine();
   int distance = target_deg - estimation ;
 
   if (reached && abs(distance) < allowed_error){
+    stop_rotation();
     return estimation;
   }
   else {
-    reached = false;
+    //reached = false;
   }
 
   // 目標近傍では回転速度を下げる
@@ -54,27 +51,13 @@ int CtrlSystem::start_control() {
     set_slow_rotation(false);
   }
 
-  Serial.print("control switch: ");
-  // deadbandのあるon-off制御
-  if (is_rotating_CW) {
-    if (distance < -allowed_error) {
-      reached = true;
-      stop_rotation();
-    }
-    else {
-      start_CW_rotation();
-    }
+  if (distance > 0) {
+    start_CW_rotation();
   }
   else {
-    if (distance > allowed_error) {
-      reached = true;
-      stop_rotation();
-    }
-    else {
-      start_CCW_rotation();
-    }
+    start_CCW_rotation();
   }
-
+  
   return estimation;
 }
 
@@ -102,15 +85,11 @@ int CtrlSystem::get_estimation() {
 void CtrlSystem::start_CW_rotation() {
   digitalWrite(ccw_pin, LOW);
   digitalWrite(cw_pin, HIGH);
-  Serial.print(myName);
-  Serial.println(" Start CW");
 }
 
 void CtrlSystem::start_CCW_rotation() {
   digitalWrite(cw_pin, LOW);
   digitalWrite(ccw_pin, HIGH);
-  Serial.print(myName);
-  Serial.println(" Start CCW");
 }
 
 void CtrlSystem::set_slow_rotation(bool isOn) {
@@ -125,13 +104,12 @@ void CtrlSystem::set_slow_rotation(bool isOn) {
 void CtrlSystem::stop_rotation() {
   digitalWrite(cw_pin, LOW);
   digitalWrite(ccw_pin, LOW);
-  Serial.print(myName);
-  Serial.println(" stopped");
 }
 
 int CtrlSystem::determine() {
   int anaraw = analogRead(meter_pin);
   float anav = anaraw * 5.0 / 1024;
+  //Serial.print(anav );
   int estimation_deg = (anav - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
   return estimation_deg;
 }
