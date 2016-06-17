@@ -1,7 +1,14 @@
-#define CTRL_INTERVAL_MS 500
+/* 
+ * ローテーターコントローラ<->PCのインターフェースとなるマイコンのプログラム
+ * シリアル通信によりローテータコントローラを操作することを可能にする
+ * 詳細な仕様はspecification.mdを参照
+ * 20160530 友岡
+ */
+
 #define ORDER_GET 'G'
 #define ORDER_SET_TARGET 'T'
 #define ORDER_SET_ERROR 'E'
+#define ORDER_SET_FREQ 'F'
 
 #include "CtrlSystem.h"
 
@@ -47,14 +54,15 @@ int target_AZ = 0;  // デフォルトの角度
 int target_EL = 0;  // デフォルトの角度
 int allowed_error_AZ = 5;
 int allowed_error_EL = 5;
+int ctrl_interval_ms = 500;
 
 CtrlSystem AZ_control(CW_AZ_pin, CCW_AZ_pin, slow_AZ_pin, meter_AZ_pin);
 CtrlSystem EL_control(CW_EL_pin, CCW_EL_pin, slow_EL_pin, meter_EL_pin);
 
 void setup() {
   init_com();
-  AZ_control.set_adc_values(0.1, 5, -180, 180);
-  EL_control.set_adc_values(0.5, 4.53, -10, 100);
+  AZ_control.set_adc_values(0.24, 4.72, -180, 180);
+  EL_control.set_adc_values(0.50, 4.53,  -10, 100);
   AZ_control.set_allowed_error(allowed_error_AZ);
   EL_control.set_allowed_error(allowed_error_EL);
   AZ_control.myName = "AZ_control";
@@ -64,12 +72,12 @@ void setup() {
 void loop() {
   static long previous_time = 0;
   long timenow = millis();
-  if (timenow - previous_time > CTRL_INTERVAL_MS) {
+  if (timenow - previous_time > ctrl_interval_ms) {
     // 制御周期分時間経過したら制御
     previous_time  = timenow;
     int AZnow = AZ_control.start_control();
     int ELnow = EL_control.start_control();
-    send_data(AZnow, ELnow);
+    //send_data(AZnow, ELnow);
   }
 
   char command = receive_order();
@@ -81,8 +89,8 @@ void loop() {
     break;
     }
     case ORDER_SET_TARGET:
-      AZ_control.set_target(target_AZ);
-      EL_control.set_target(target_EL);
+      target_AZ = AZ_control.set_target(target_AZ);
+      target_EL = EL_control.set_target(target_EL);
     break;
     case ORDER_SET_ERROR:
       AZ_control.set_allowed_error(allowed_error_AZ);

@@ -22,16 +22,12 @@ CtrlSystem::CtrlSystem(int cwPin, int ccwPin, int slowPin, int meterPin) {
   myName = "CtrlSystem";
 }
 
-void CtrlSystem::set_target(int target) {
+int CtrlSystem::set_target(int target) {
   if (target >= toLow && target <= toHigh) {
+    // 範囲外は無視
     target_deg = target;
   }
-  else {
-    target_deg = 0; //(toLow + toHigh) / 2;
-  }
-  // これからの回転方向を記憶
-  int est = determine();
-  is_rotating_CW = est > target_deg;
+  return target_deg;
 }
 
 int CtrlSystem::start_control() {
@@ -113,7 +109,7 @@ void CtrlSystem::stop_rotation() {
 int CtrlSystem::determine() {
   int anaraw = analogRead(meter_pin);
   float anav = anaraw * 5.0 / 1024;
-  //Serial.print(anav);
+  //Serial.print(anav );
   int estimation_deg = (anav - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
   return estimation_deg;
 }
