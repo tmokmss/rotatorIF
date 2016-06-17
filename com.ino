@@ -4,6 +4,7 @@ extern int target_AZ;
 extern int target_EL;
 extern int allowed_error_AZ;
 extern int allowed_error_EL;
+extern int ctrl_interval_ms;
 
 void init_com() {
   Serial.begin(9600);
@@ -23,7 +24,7 @@ char receive_order() {
     if(Serial.available()) {
       unsigned char rxletter = Serial.read();
       switch(rxletter) {
-        case 0x0a:
+        case '\n':
           // LF(\n)で命令終了
           tempbuf[index] = 0x00;
           received = true;
@@ -78,6 +79,16 @@ char parse(char *buf) {
       }
     break;
     }
+    case ORDER_SET_FREQ: {
+      char* freq_str = strtok(NULL, ",");
+      if (freq_str != NULL) {
+        ctrl_interval_ms = atoi(freq_str);
+      }
+      else {
+        command = 0;
+      }
+    break;
+    }
   }
   return command;
 }
@@ -99,5 +110,7 @@ void send_data(int est_AZ, int est_EL) {
   Serial.print(error_AZ);
   Serial.print(',');
   Serial.print(error_EL);
+  Serial.print(',');
+  Serial.print(ctrl_interval_ms);
   Serial.print('\n');
 }

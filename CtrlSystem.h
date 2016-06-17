@@ -6,7 +6,7 @@
 class CtrlSystem {
   public:
     CtrlSystem(int cwPin, int ccwPin, int slowPin, int meterPin);
-    void set_target(int target);
+    int set_target(int target);
     int start_control();
     void set_adc_values(float lowV, float highV, int lowDeg, int highDeg);
     void set_allowed_error(int error);
